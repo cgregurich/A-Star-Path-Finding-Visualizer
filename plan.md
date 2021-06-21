@@ -31,11 +31,19 @@ else
 ### **CURRENT TASK**
 
 ### **WHERE I LEFT OFF**
-- still working on the cool like animated fill-in effect for drawing the squares.
-I mean it's pretty good, only issue is if I were to place a start or end node on
-an obstacle node, it's just instantly placed which is lame. I was working in the 
-sandbox file to see if making an animation would help at all. Not sure. brains fried.
-l8r sk8r
+
+TODO: FIXME: READ THIS!!
+- kinda sorta got the animations (fill and unfill) to work... except: when you try
+to fill before the unfill is finished, or try to unfill before the fill is finished.
+^^^^ actually seems like it only occurs when you right click then left click 
+(i.e. cell is filled, all fine and dandy, you try to unfill it then fill it before the unfill
+animation is done. Maybe it has something to do with the fact that the unfill function
+temporarily removes the listener then reapplies it? But isn't that only mouseover not mousedown???)
+what you should look at is using the start node, see if the startnode exists when this glitch occurs, (both ways)
+and just dig into it and solve it!
+- also take a look at wtf you're doing with your function calls. in one area on 
+a right click you call `cellRightClicked` which literally just called `resetCell`. Is
+this `cellRightClicked` function really necessary?
 
 ### **TODO**
 - Figure out how the algorithm even works
@@ -48,10 +56,10 @@ l8r sk8r
 - change sizes of the grid?
 - How to not make fat grids slow down the webpage??
 - Maybe also do Dijkstra's?
+- Maybe add a random maze generator?
 
 ### **BUGS**
-- sequence of events: place start, place end, place some obstacles. remove start or end
-and place it on an obstacle => DOESN'T have the animated fill effect
+- 
 
 ### **COMPLETED TODOS**
 - Make the ui on a basic level
@@ -61,5 +69,7 @@ and place it on an obstacle => DOESN'T have the animated fill effect
 ### **BUGS FIXED**
 - no-drag for start and end works for initial placement, but if they're removed
 then replaced, the drag functionality breaks (or rather, exists)
+- sequence of events: place start, place end, place some obstacles. remove start or end
+and place it on an obstacle => DOESN'T have the animated fill effect
 
 

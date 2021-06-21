@@ -15,15 +15,30 @@ body {
     /** Color is decided in script.js */
     background-position: 50% 50%;
     background-repeat: no-repeat;
-    /*FIXME: .3s is good for the transition */
-    transition: background-size .8s ease-out; 
     border-radius: 3px;
 }
 
-.colored {
-    background-size: 100% 100%;
+@keyframes fill-in-animation {
+    0% {
+        background-size: 0% 0%;
+    }
+
+    100% {
+        background-size: 100% 100%;
+    }
 }
 
-.uncolored {
-    background-size: 0% 0%;
+@keyframes unfill-animation {
+    0% {
+        background-size: 100% 100%;
+    }
+
+    100% {
+        background-size: 0% 0%;
+    }
+}
+
+/* TESTING STUFF TODO: remove */
+.btn {
+    font-size: 40px;
 }

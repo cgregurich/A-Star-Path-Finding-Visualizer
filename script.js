@@ -1,11 +1,45 @@
+class Cell{
+    constructor(row, column){
+        this.domElement = this.createDomElement(CELL_SIZE_PX);
+        this.row = row;
+        this.column = column;
+    }
+
+    createDomElement(cellSize){
+        let cell = document.createElement("div");
+        cell.style.backgroundColor = DEFAULT_COLOR;
+        cell.style.width = `${cellSize}px`;
+        cell.style.height = `${cellSize}px`;
+        cell.style.border = "1px solid black";
+        return cell;
+    }
+
+    getDomElement(){
+        return this.domElement;
+    }
+
+    getX(){
+        return this.x;
+    }
+
+    getY(){
+        return this.y;
+    }
+
+
+
+}
+
+
+
 function createGrid(numCells, cellSize){
     // Essentially put a matrix of divs as gridDiv's children
     // Makes a square
     for (let r=0; r<numCells; r++){
         let rowDiv = createRowDiv();
         for (let c=0; c<numCells; c++){
-            let cell = createCell(cellSize);
-            rowDiv.appendChild(cell);
+            let cell = new Cell(r, c);
+            rowDiv.appendChild(cell.getDomElement());
         }
         gridDiv.appendChild(rowDiv);
     }
@@ -30,6 +64,10 @@ function createCell(cellSize){
 
 
 function cellLeftClick(cell){
+    // user is placing start or end on an obstacle, so delete obstacle from array
+    if (obstacles.includes(cell) && (!startNode || !endNode)){
+        deleteObstacle(cell);
+    }
     colorCell(cell);
 
     // one time mouseup listener so the drag effect isn't enabled too early
@@ -45,18 +83,8 @@ function colorCell(cell){
     if (!startNode) setAsStart(cell);
     else if (!endNode) setAsEnd(cell);
     else setAsObstacle(cell);
-    applyColoredClass(cell);
 }
 
-function applyColoredClass(cell){
-    cell.classList.add("colored");
-    cell.classList.remove("uncolored");
-}
-
-function applyUncoloredClass(cell){
-    cell.classList.add("uncolored");
-    cell.classList.remove("colored");
-}
 
 function cellRightClick(cell){
     resetCell(cell);
@@ -95,26 +123,76 @@ function disableRightClickMenu(){
     }));
 }
 
+function animateFillIn(cell, color){
+    cell.style.animation = `fill-in-animation ${ANIMATION_TIME} ${ANIMATION_TIMING_FUNCTION}`;
+    cell.style.backgroundImage = `linear-gradient(${color}, ${color})`;
+
+    cell.addEventListener("animationend", () => {
+        cell.style.animation = "none";
+        cell.style.backgroundColor = color;
+    }, {once: true});
+}
+
+
+function animateUnfill(cell){
+
+    // remember the cells color to use for the unfill animation
+    const currentCellColor = cell.style.backgroundColor;
+
+    // since the cell's animation color will be its current color, need to change
+    // cell's bg so the animation is visible (eg. green animation on a green bg would
+    // have no visible effect)
+    cell.style.backgroundColor = DEFAULT_COLOR;
+
+    // add the animation to the style so it begins
+    cell.style.animation = `unfill-animation ${ANIMATION_TIME} ${ANIMATION_TIMING_FUNCTION}`;
+
+    // tell the CSS what color to use for the animation
+    cell.style.backgroundImage = `linear-gradient(${currentCellColor}, ${currentCellColor})`;
+
+    // temporarily remove the mouse events to avoid interrupting the animation
+    cell.removeEventListener("mousemove", mouseOverCell);
+    cell.removeEventListener("mousedown", mouseDownOnCell);
+
+    // once animation is over, change a few properties
+    cell.addEventListener("animationend", () => {
+        // remove the animation so it can be added later
+        cell.style.animation = "none";
+
+        // set bg so it appears unfilled
+        cell.style.backgroundColor = DEFAULT_COLOR;
+
+        // set bg to defaultcolor 
+        cell.style.backgroundImage = `linear-gradient(${DEFAULT_COLOR}, ${DEFAULT_COLOR})`;
+
+        // re-apply mouse events since the animation is done
+        cell.addEventListener("mousemove", mouseOverCell);
+        cell.addEventListener("mousedown", mouseDownOnCell);
+
+    }, {once: true}); // 
+}
+
+
 function setAsStart(cell){
-    cell.style.backgroundImage = `linear-gradient(${START_COLOR}, ${START_COLOR})`;
+    animateFillIn(cell, START_COLOR);
     startNode = cell;
 }
 
 function setAsEnd(cell){
+    animateFillIn(cell, END_COLOR);
     endNode = cell;
-    cell.style.backgroundImage = `linear-gradient(${END_COLOR}, ${END_COLOR})`;
 }
 
 function setAsObstacle(cell){
     if (!obstacles.includes(cell)) {
+        animateFillIn(cell, OBSTACLE_COLOR);
         obstacles.push(cell);
-        cell.style.backgroundImage = `linear-gradient(${OBSTACLE_COLOR}, ${OBSTACLE_COLOR})`;
      }
 }
 
 
 function resetCell(cell){
-    applyUncoloredClass(cell);
+    animateUnfill(cell);
     // start or end have been removed, which means the mouse drag effect needs
     // to be disabled
     if (cell == startNode || cell == endNode) {
@@ -122,11 +200,17 @@ function resetCell(cell){
     }
     if (cell == startNode) startNode = null;
     if (cell == endNode) endNode = null;
-    if (obstacles.includes(cell)) obstacles.splice(obstacles.indexOf(cell), 1);
+    if (obstacles.includes(cell)) deleteObstacle(cell);
+}
+
+function deleteObstacle(cell){
+    obstacles.splice(obstacles.indexOf(cell), 1);
 }
 
 
 
+const ANIMATION_TIME = ".3s";
+const ANIMATION_TIMING_FUNCTION = "ease-in";
 
 const LEFT_CLICK = 1;
 const RIGHT_CLICK = 2;
@@ -134,7 +218,8 @@ const START_COLOR = "green";
 const END_COLOR = "red";
 const OBSTACLE_COLOR = "blue";
 const DEFAULT_COLOR = "white";
-
+const CELLS = 25;
+const CELL_SIZE_PX = 25;
 
 let startNode = null;
 let endNode = null
@@ -142,7 +227,7 @@ let obstacles = [];
 let leftClickDragEnabled = false;
 
 const gridDiv = document.querySelector(".grid-div");
-createGrid(25, 25);
+createGrid(CELLS, CELL_SIZE_PX);
 
 
 applyMouseDownListeners();
@@ -150,13 +235,9 @@ disableRightClickMenu();
 applyMouseOverListeners();
 
 
-
-
-// WHERE I LEFT OFF: 
-
-// trying to get this dope color fill effect to work. It sort of works BUT
-// - bug where when you color an obstacle, then remove it, that cell is no longer
-// able to be colored
-// - try to make it work for start, end, and obstacle node. I'm not sure how to 
-// make the css and js work together.
-// - also mess with different things like speed, border radius, and timing function.
+// TESTING STUFF TODO: remove this
+const btn = document.querySelector(".btn");
+btn.addEventListener("click", () => {
+    console.log(`startNode`);
+    console.log(startNode);
+});
