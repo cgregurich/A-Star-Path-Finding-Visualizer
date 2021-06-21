@@ -1,1 +1,1 @@
-# A-Start-Path-Finding-Visualizer
+# A-Star-Path-Finding-Visualizer
