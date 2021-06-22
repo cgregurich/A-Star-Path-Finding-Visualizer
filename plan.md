@@ -31,24 +31,26 @@ else
 ### **CURRENT TASK**
 
 ### **WHERE I LEFT OFF**
+NEED TO MATH CHECK THE CALCULATIONS FOR `firstStep()`
+just implemented the firstStep thing.
+I'd prefer to get a slightly cleaner, more DRY implementation.
 
-TODO: FIXME: READ THIS!!
-- kinda sorta got the animations (fill and unfill) to work... except: when you try
-to fill before the unfill is finished, or try to unfill before the fill is finished.
-^^^^ actually seems like it only occurs when you right click then left click 
-(i.e. cell is filled, all fine and dandy, you try to unfill it then fill it before the unfill
-animation is done. Maybe it has something to do with the fact that the unfill function
-temporarily removes the listener then reapplies it? But isn't that only mouseover not mousedown???)
-what you should look at is using the start node, see if the startnode exists when this glitch occurs, (both ways)
-and just dig into it and solve it!
+kinda sorta understand the algorithm, was messing with 
+just making the page do the first step of the process i.e. indicate which cells are the start node's neighbors. need to deal with grid bounds and obstacles. also trying to just see how the cellsMatrix works. I should be able to do what I was trying to do in `getCellsToCheck` (where i was changing the color by using the row and col for the matrix) but it wasn't working.
+
+
 - also take a look at wtf you're doing with your function calls. in one area on 
 a right click you call `cellRightClicked` which literally just called `resetCell`. Is
 this `cellRightClicked` function really necessary?
 
 ### **TODO**
+- CLEAN TODOS!
+- clearing grid needs to also remove score text from cells
+- some sort of indication that the algorithm can't be run when start and end aren't placed
 - Figure out how the algorithm even works
   - What the different states of cells? 
   - What heuristic to use? Euclidean or Manhattan?
+
 
 - Style the ui
 - figure out how to animate the algorithm
@@ -59,7 +61,7 @@ this `cellRightClicked` function really necessary?
 - Maybe add a random maze generator?
 
 ### **BUGS**
-- 
+- WTF IS THAT?? I CAN COLOR THE MFIN DIVS THAT DISPLAY THE SCORES????
 
 ### **COMPLETED TODOS**
 - Make the ui on a basic level
@@ -71,5 +73,6 @@ this `cellRightClicked` function really necessary?
 then replaced, the drag functionality breaks (or rather, exists)
 - sequence of events: place start, place end, place some obstacles. remove start or end
 and place it on an obstacle => DOESN'T have the animated fill effect
+- when you unfill then immediately try to fill, the block ends up uncolored
 
 

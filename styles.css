@@ -1,5 +1,4 @@
-
-
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
 body {
     display: flex;
@@ -15,8 +14,32 @@ body {
     /** Color is decided in script.js */
     background-position: 50% 50%;
     background-repeat: no-repeat;
-    border-radius: 3px;
+    /* border-radius: 3px; */
+    background-image: border-radius 3px;
+    position: relative;
 }
+
+.score {
+    position: absolute;
+    padding: 0 .3em;
+    font-family: "Roboto", sans-serif;
+    /* font-size: 0.3em; */
+  }
+
+  .g-score {
+    bottom: 0;
+    left: 0;
+  }
+
+  .h-score {
+    bottom: 0;
+    right: 0;
+  }
+
+  .f-score {
+    top: 0;
+    left: 0;
+  }
 
 @keyframes fill-in-animation {
     0% {

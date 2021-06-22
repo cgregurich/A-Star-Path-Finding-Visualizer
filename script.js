@@ -1,49 +1,19 @@
-class Cell{
-    constructor(row, column){
-        this.domElement = this.createDomElement(CELL_SIZE_PX);
-        this.row = row;
-        this.column = column;
-    }
-
-    createDomElement(cellSize){
-        let cell = document.createElement("div");
-        cell.style.backgroundColor = DEFAULT_COLOR;
-        cell.style.width = `${cellSize}px`;
-        cell.style.height = `${cellSize}px`;
-        cell.style.border = "1px solid black";
-        return cell;
-    }
-
-    getDomElement(){
-        return this.domElement;
-    }
-
-    getX(){
-        return this.x;
-    }
-
-    getY(){
-        return this.y;
-    }
-
-
-
-}
-
-
-
 function createGrid(numCells, cellSize){
     // Essentially put a matrix of divs as gridDiv's children
     // Makes a square
     for (let r=0; r<numCells; r++){
         let rowDiv = createRowDiv();
+        let cellsRow = [];
         for (let c=0; c<numCells; c++){
-            let cell = new Cell(r, c);
-            rowDiv.appendChild(cell.getDomElement());
+            let cell = createCell(cellSize);
+            rowDiv.appendChild(cell);
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cellsRow.push(cell);
         }
+        cellsMatrix.push(cellsRow);
         gridDiv.appendChild(rowDiv);
     }
-    gridDiv;
 }
 
 function createRowDiv(){
@@ -58,36 +28,21 @@ function createCell(cellSize){
     cell.style.width = `${cellSize}px`;
     cell.style.height = `${cellSize}px`;
     cell.style.border = "1px solid black";
-    cell.classList.add("cell", "uncolored");
+    cell.classList.add("cell");
+    createCellScoreChildren(cell);
     return cell;
 }
 
-
-function cellLeftClick(cell){
-    // user is placing start or end on an obstacle, so delete obstacle from array
-    if (obstacles.includes(cell) && (!startNode || !endNode)){
-        deleteObstacle(cell);
-    }
-    colorCell(cell);
-
-    // one time mouseup listener so the drag effect isn't enabled too early
-    // if it was, then you could make obstacles right after placing the end node
-    // without letting go of left click; this is not desired behavior!
-    if (startNode && endNode && !leftClickDragEnabled) {
-        document.addEventListener("mouseup", () => leftClickDragEnabled = true, {once: true});
-    }
-}
-
-function colorCell(cell){
-    if (cell == startNode || cell == endNode) return;
-    if (!startNode) setAsStart(cell);
-    else if (!endNode) setAsEnd(cell);
-    else setAsObstacle(cell);
-}
-
-
-function cellRightClick(cell){
-    resetCell(cell);
+function createCellScoreChildren(cell){
+    const gScore = document.createElement("div");
+    const hScore = document.createElement("div");
+    const fScore = document.createElement("div");
+    gScore.classList.add("score", "g-score");
+    hScore.classList.add("score", "h-score");
+    fScore.classList.add("score", "f-score");
+    cell.appendChild(gScore);
+    cell.appendChild(hScore);
+    cell.appendChild(fScore);
 }
 
 function mouseDownOnCell(e){
@@ -100,27 +55,44 @@ function mouseDownOnCell(e){
 }
 
 function mouseOverCell(e){
+    if (e.buttons == NO_BUTTONS) return;
     if (e.buttons == LEFT_CLICK) {
         if (!leftClickDragEnabled) return;
-        colorCell(e.target);
+        cellLeftClick(e.target);
     }
     else if (e.buttons == RIGHT_CLICK){
-        resetCell(e.target);
+        cellRightClick(e.target);
     }
 }
 
-function applyMouseOverListeners(){
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousemove", mouseOverCell)));
+function cellLeftClick(cell){
+    if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
+
+    // user is placing start or end on an obstacle, so delete obstacle from array
+    if (obstacles.includes(cell) && (!startCell || !endCell)){
+        deleteObstacle(cell);
+    }
+    colorCell(cell);
+
+    // one time mouseup listener so the drag effect isn't enabled too early
+    // if it was, then you could make obstacles right after placing the end node
+    // without letting go of left click; this is not desired behavior!
+    if (startCell && endCell && !leftClickDragEnabled) {
+        document.addEventListener("mouseup", () => leftClickDragEnabled = true, {once: true});
+    }
 }
 
-function applyMouseDownListeners(){
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousedown", mouseDownOnCell)));
+function cellRightClick(cell){
+    if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
+    // if (cell != startCell && cell != endCell && !obstacles.includes(cell)) return;
+    resetCell(cell);
 }
 
-function disableRightClickMenu(){
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => {
-        cell.addEventListener("contextmenu", e => e.preventDefault());
-    }));
+function colorCell(cell){
+    if (cell == startCell || cell == endCell) return;
+    if (!startCell) setAsStart(cell);
+    else if (!endCell) setAsEnd(cell);
+    else setAsObstacle(cell);
 }
 
 function animateFillIn(cell, color){
@@ -130,6 +102,7 @@ function animateFillIn(cell, color){
     cell.addEventListener("animationend", () => {
         cell.style.animation = "none";
         cell.style.backgroundColor = color;
+        cell.style.backgroundImage = "none";
     }, {once: true});
 }
 
@@ -162,25 +135,25 @@ function animateUnfill(cell){
         // set bg so it appears unfilled
         cell.style.backgroundColor = DEFAULT_COLOR;
 
-        // set bg to defaultcolor 
-        cell.style.backgroundImage = `linear-gradient(${DEFAULT_COLOR}, ${DEFAULT_COLOR})`;
+        // remove bg image so other colors can be visible
+        cell.style.backgroundImage = "none";
 
         // re-apply mouse events since the animation is done
         cell.addEventListener("mousemove", mouseOverCell);
         cell.addEventListener("mousedown", mouseDownOnCell);
 
-    }, {once: true}); // 
+    }, {once: true});
 }
 
 
 function setAsStart(cell){
     animateFillIn(cell, START_COLOR);
-    startNode = cell;
+    startCell = cell;
 }
 
 function setAsEnd(cell){
     animateFillIn(cell, END_COLOR);
-    endNode = cell;
+    endCell = cell;
 }
 
 function setAsObstacle(cell){
@@ -195,12 +168,20 @@ function resetCell(cell){
     animateUnfill(cell);
     // start or end have been removed, which means the mouse drag effect needs
     // to be disabled
-    if (cell == startNode || cell == endNode) {
+    if (cell == startCell || cell == endCell) {
         leftClickDragEnabled = false;
     }
-    if (cell == startNode) startNode = null;
-    if (cell == endNode) endNode = null;
+    if (cell == startCell) startCell = null;
+    if (cell == endCell) endCell = null;
     if (obstacles.includes(cell)) deleteObstacle(cell);
+}
+
+function resetGrid(){
+    startCell = null;
+    endCell = null;
+    obstacles = [];
+    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => resetCell(cell)));
+    leftClickDragEnabled = false;
 }
 
 function deleteObstacle(cell){
@@ -208,21 +189,131 @@ function deleteObstacle(cell){
 }
 
 
+function applyMouseOverListeners(){
+    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousemove", mouseOverCell)));
+}
+
+function applyMouseDownListeners(){
+    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousedown", mouseDownOnCell)));
+}
+
+function applySpaceListener(){
+    document.addEventListener("keypress", resetGrid);
+}
+
+function disableRightClickMenu(){
+    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => {
+        cell.addEventListener("contextmenu", e => e.preventDefault());
+    }));
+}
+
+// #TODO: kinda sorta for testing?
+function firstStep(){
+    const adjacents = getAdjacentCells(startCell);
+    adjacents.forEach(cell => {
+        cell.style.backgroundColor = ADJACENT_COLOR;
+        setGScoreData(cell, calculateGScore(startCell, cell));
+        setHScoreData(cell, calculateHScore(cell));
+        setFScoreData(cell, calculateFScore(cell));
+        updateCellDisplay(cell);
+    });
+}
+
+function getAdjacentCells(rootCell){
+    // return array of the 8 cells surrounding rootCell
+    const rootRow = parseInt(rootCell.dataset.row);
+    const rootCol = parseInt(rootCell.dataset.col);
+    const adjacentCells = [];
+
+    for (let r=rootRow-1; r<rootRow+2; r++){
+        for (let c=rootCol-1; c<rootCol+2; c++){
+            const cell = cellsMatrix[r]?.[c];
+            // don't include rootCell or startCell or if cell is invalid i.e. 
+            // we're at grid bounds, don't include it
+            if (cell == rootCell || cell == startCell || !cell) continue;
+            adjacentCells.push(cell);
+        }
+    }
+    return adjacentCells;
+}
+
+function calculateGScore(rootCell, adjacentCell){
+    const rootRow = rootCell.dataset.row;
+    const rootCol = rootCell.dataset.col;
+
+    // cell in the same row or col means it's orthogonally located
+    if (adjacentCell.dataset.row == rootRow || adjacentCell.dataset.col == rootCol){
+        // score of 10 denotes cell is orthogonal i.e. up/down/left/right
+        return 10;
+    }
+    else{
+        // score of 14 denotes cell is diagonal due to Pythagorean theorem
+        return 14;
+    }
+}
+
+function calculateHScore(cell){
+    return manhattanDistanceToEndCell(cell) * 10;
+}
+
+function calculateFScore(cell){
+    return parseInt(cell.dataset.gScore) + parseInt(cell.dataset.hScore);
+}
+
+function setCellData(cell, dataName, dataValue){
+    cell.setAttribute(dataName, dataValue);
+}
+
+function setGScoreData(cell, gScore){
+    cell.dataset.gScore = gScore;
+}
+
+function setHScoreData(cell, hScore){
+    cell.dataset.hScore = hScore;
+}
+
+function setFScoreData(cell, fScore){
+    cell.dataset.fScore = fScore;
+}
+
+function setCellScoresData(cell, g, h, f){
+    cell.dataset.gScore = g;
+    cell.dataset.hScore = h;
+    cell.dataset.fScore = f;
+}
+
+function updateCellDisplay(cell){
+    const gScoreDiv = cell.querySelector(".g-score");
+    const hScoreDiv = cell.querySelector(".h-score");
+    const fScoreDiv = cell.querySelector(".f-score");
+    gScoreDiv.innerText = cell.dataset.gScore;
+    hScoreDiv.innerText = cell.dataset.hScore;
+    fScoreDiv.innerText = cell.dataset.fScore;
+}
+
+function manhattanDistanceToEndCell(cell){
+    return Math.abs(cell.dataset.row - endCell.dataset.row) + Math.abs(cell.dataset.col - endCell.dataset.col);
+}
 
 const ANIMATION_TIME = ".3s";
 const ANIMATION_TIMING_FUNCTION = "ease-in";
 
+const NO_BUTTONS = 0;
 const LEFT_CLICK = 1;
 const RIGHT_CLICK = 2;
 const START_COLOR = "green";
 const END_COLOR = "red";
 const OBSTACLE_COLOR = "blue";
 const DEFAULT_COLOR = "white";
-const CELLS = 25;
-const CELL_SIZE_PX = 25;
+const ADJACENT_COLOR = "rgb(238, 126, 238)";
+const CELLS = 6;
+const CELL_SIZE_PX = 75;
 
-let startNode = null;
-let endNode = null
+// keys are html elements representing cells, values is 
+// array of row and column in grid
+let cellsMatrix = []; 
+let startCell = null;
+let endCell = null
 let obstacles = [];
 let leftClickDragEnabled = false;
 
@@ -233,11 +324,10 @@ createGrid(CELLS, CELL_SIZE_PX);
 applyMouseDownListeners();
 disableRightClickMenu();
 applyMouseOverListeners();
-
+applySpaceListener();
 
 // TESTING STUFF TODO: remove this
 const btn = document.querySelector(".btn");
 btn.addEventListener("click", () => {
-    console.log(`startNode`);
-    console.log(startNode);
+    firstStep();
 });
