@@ -354,7 +354,7 @@ function aStarAlgorithm(){
         closedSet.add(currentCell);
         // mark it as closed
         if (currentCell != startCell && currentCell != endCell){
-            currentCell.style.backgroundColor = CLOSED_COLOR;
+            // currentCell.style.backgroundColor = CLOSED_COLOR;
         }
         
         if (currentCell == endCell) {
@@ -379,7 +379,7 @@ function aStarAlgorithm(){
                     openQ.queue(adjacent);
                     if (adjacent != startCell && adjacent != endCell){
                         // mark it as open?
-                        adjacent.style.backgroundColor = OPEN_COLOR;
+                        // adjacent.style.backgroundColor = OPEN_COLOR;
                     }
                 }
             }
