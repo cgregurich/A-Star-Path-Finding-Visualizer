@@ -1,10 +1,12 @@
-function createGrid(numCells, cellSize){
+
+
+function createGrid(rowCount, colCount, cellSize){
     // Essentially put a matrix of divs as gridDiv's children
     // Makes a square
-    for (let r=0; r<numCells; r++){
+    for (let r=0; r<rowCount; r++){
         let rowDiv = createRowDiv();
         let cellsRow = [];
-        for (let c=0; c<numCells; c++){
+        for (let c=0; c<colCount; c++){
             let cell = createCell(cellSize);
             rowDiv.appendChild(cell);
             cell.dataset.row = r;
@@ -27,8 +29,9 @@ function createCell(cellSize){
     cell.style.backgroundColor = DEFAULT_COLOR;
     cell.style.width = `${cellSize}px`;
     cell.style.height = `${cellSize}px`;
-    cell.style.border = "1px solid black";
+    cell.style.border = CELL_BORDER;
     cell.classList.add("cell");
+    cell.dataset.gScore = Infinity;
     createCellScoreChildren(cell);
     return cell;
 }
@@ -46,6 +49,7 @@ function createCellScoreChildren(cell){
 }
 
 function mouseDownOnCell(e){
+    if (hasPath()) softReset();
     if (e.buttons == LEFT_CLICK){
         cellLeftClick(e.target);
     }
@@ -84,8 +88,9 @@ function cellLeftClick(cell){
 
 function cellRightClick(cell){
     if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
-    // if (cell != startCell && cell != endCell && !obstacles.includes(cell)) return;
+    if (cell != startCell && cell != endCell && !obstacles.includes(cell)) return;
     resetCell(cell);
+    
 }
 
 function colorCell(cell){
@@ -123,6 +128,9 @@ function animateUnfill(cell){
     // tell the CSS what color to use for the animation
     cell.style.backgroundImage = `linear-gradient(${currentCellColor}, ${currentCellColor})`;
 
+    // TODO: for testing, remove this
+    // cell.innerText = "";
+
     // temporarily remove the mouse events to avoid interrupting the animation
     cell.removeEventListener("mousemove", mouseOverCell);
     cell.removeEventListener("mousedown", mouseDownOnCell);
@@ -149,6 +157,9 @@ function animateUnfill(cell){
 function setAsStart(cell){
     animateFillIn(cell, START_COLOR);
     startCell = cell;
+    startCell.dataset.gScore = 0;
+    startCell.dataset.hScore = 0;
+    startCell.dataset.fScore = 0;
 }
 
 function setAsEnd(cell){
@@ -174,11 +185,10 @@ function resetCell(cell){
     if (cell == startCell) startCell = null;
     if (cell == endCell) endCell = null;
     if (obstacles.includes(cell)) deleteObstacle(cell);
+    cell.cameFrom = undefined;
 }
 
 function resetGrid(){
-    startCell = null;
-    endCell = null;
     obstacles = [];
     gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => resetCell(cell)));
     leftClickDragEnabled = false;
@@ -197,32 +207,35 @@ function applyMouseDownListeners(){
     gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousedown", mouseDownOnCell)));
 }
 
-function applySpaceListener(){
-    document.addEventListener("keypress", resetGrid);
+function applyKeypressListener(){
+    document.addEventListener("keypress", keyPressed);
 }
+
+function keyPressed(e){
+    if (e.code == "Space"){
+        e.preventDefault();
+        if (!startCell || !endCell){
+            alert("uh uh bud");
+            return;
+        }
+        
+        e.preventDefault();
+        aStarAlgorithm();
+    }
+    if (e.code == "KeyC"){
+        resetGrid();
+    }
+}
+
 
 function disableRightClickMenu(){
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => {
-        cell.addEventListener("contextmenu", e => e.preventDefault());
-    }));
-}
-
-// #TODO: kinda sorta for testing?
-function firstStep(){
-    const adjacents = getAdjacentCells(startCell);
-    adjacents.forEach(cell => {
-        cell.style.backgroundColor = ADJACENT_COLOR;
-        setGScoreData(cell, calculateGScore(startCell, cell));
-        setHScoreData(cell, calculateHScore(cell));
-        setFScoreData(cell, calculateFScore(cell));
-        updateCellDisplay(cell);
-    });
+    document.addEventListener("contextmenu", e => e.preventDefault());
 }
 
 function getAdjacentCells(rootCell){
     // return array of the 8 cells surrounding rootCell
-    const rootRow = parseInt(rootCell.dataset.row);
-    const rootCol = parseInt(rootCell.dataset.col);
+    const rootRow = getCellRow(rootCell);
+    const rootCol = getCellCol(rootCell);
     const adjacentCells = [];
 
     for (let r=rootRow-1; r<rootRow+2; r++){
@@ -237,19 +250,38 @@ function getAdjacentCells(rootCell){
     return adjacentCells;
 }
 
-function calculateGScore(rootCell, adjacentCell){
-    const rootRow = rootCell.dataset.row;
-    const rootCol = rootCell.dataset.col;
+function getCellRow(cell){
+    return parseInt(cell.dataset.row);
+}
 
-    // cell in the same row or col means it's orthogonally located
-    if (adjacentCell.dataset.row == rootRow || adjacentCell.dataset.col == rootCol){
-        // score of 10 denotes cell is orthogonal i.e. up/down/left/right
-        return 10;
-    }
-    else{
-        // score of 14 denotes cell is diagonal due to Pythagorean theorem
-        return 14;
-    }
+function getCellCol(cell){
+    return parseInt(cell.dataset.col);
+}
+
+function getCellGScore(cell){
+    return parseInt(cell.dataset.gScore);
+}
+
+function getCellHScore(cell){
+    return parseInt(cell.dataset.hScore);
+}
+
+function getCellFScore(cell){
+    return parseInt(cell.dataset.fScore);
+}
+
+function calculateStepCost(rootCell, adjacentCell){
+    const rootRow = getCellRow(rootCell);
+    const rootCol = getCellCol(rootCell);
+
+    if (isDiagonal(rootCell, adjacentCell)) return 14;
+    else return 10;
+}
+
+function calculateGScore(rootCell, adjacentCell){
+    const stepCost = calculateStepCost(rootCell, adjacentCell);
+    const gScore = stepCost + getCellGScore(rootCell);
+    return gScore;
 }
 
 function calculateHScore(cell){
@@ -257,30 +289,10 @@ function calculateHScore(cell){
 }
 
 function calculateFScore(cell){
-    return parseInt(cell.dataset.gScore) + parseInt(cell.dataset.hScore);
+    return getCellGScore(cell) + getCellHScore(cell);
 }
 
-function setCellData(cell, dataName, dataValue){
-    cell.setAttribute(dataName, dataValue);
-}
 
-function setGScoreData(cell, gScore){
-    cell.dataset.gScore = gScore;
-}
-
-function setHScoreData(cell, hScore){
-    cell.dataset.hScore = hScore;
-}
-
-function setFScoreData(cell, fScore){
-    cell.dataset.fScore = fScore;
-}
-
-function setCellScoresData(cell, g, h, f){
-    cell.dataset.gScore = g;
-    cell.dataset.hScore = h;
-    cell.dataset.fScore = f;
-}
 
 function updateCellDisplay(cell){
     const gScoreDiv = cell.querySelector(".g-score");
@@ -292,10 +304,153 @@ function updateCellDisplay(cell){
 }
 
 function manhattanDistanceToEndCell(cell){
-    return Math.abs(cell.dataset.row - endCell.dataset.row) + Math.abs(cell.dataset.col - endCell.dataset.col);
+    return Math.abs(getCellRow(cell) - getCellRow(endCell)) + Math.abs(getCellCol(cell) - getCellCol(endCell));
 }
 
-const ANIMATION_TIME = ".3s";
+function createPriorityQueue(){
+    return new PriorityQueue({ comparator: function(cell1, cell2) 
+        { return getCellFScore(cell1) - getCellFScore(cell2) } 
+    });
+}
+
+
+function isDiagonal(rootCell, adjCell){
+    const rootRow = getCellRow(rootCell);
+    const rootCol = getCellCol(rootCell);
+    const adjRow = getCellRow(adjCell);
+    const adjCol = getCellCol(adjCell);
+
+    // since rootCell and adjCell are assumed to be adjacent, simply check if
+    // they don't share a row AND don't share a column
+    return rootRow != adjRow && rootCol != adjCol;
+}
+
+function isGoingThroughWall(rootCell, adjCell){
+    const rootRow = getCellRow(rootCell);
+    const rootCol = getCellCol(rootCell);
+    const adjRow = getCellRow(adjCell);
+    const adjCol = getCellCol(adjCell);
+
+    let o1 = cellsMatrix[rootRow][adjCol];
+    let o2 = cellsMatrix[adjRow][rootCol];
+    return (obstacles.includes(o1) && obstacles.includes(o2));
+}
+
+
+
+function aStarAlgorithm(){
+
+    const openQ = createPriorityQueue();
+    const openSet = new Set();
+    const closedSet = new Set();
+    openQ.queue(startCell);
+    // updateCellDisplay(startCell);
+
+
+    while (openQ.length != 0){
+        const currentCell = openQ.dequeue();
+        
+        openSet.delete(currentCell);
+        closedSet.add(currentCell);
+        // mark it as closed
+        if (currentCell != startCell && currentCell != endCell){
+            currentCell.style.backgroundColor = CLOSED_COLOR;
+        }
+        
+        if (currentCell == endCell) {
+            break;
+        }
+
+        const adjacents = getAdjacentCells(currentCell);
+
+        for (let adjacent of adjacents){
+            if (closedSet.has(adjacent)) continue;
+            if (obstacles.includes(adjacent)) continue;
+            if (isGoingThroughWall(currentCell, adjacent)) continue;
+          
+            const gScore = calculateGScore(currentCell, adjacent);
+            if (gScore < getCellGScore(adjacent) || !openSet.has(adjacent)) {
+                adjacent.dataset.gScore = gScore;
+                adjacent.dataset.hScore = calculateHScore(adjacent);
+                adjacent.dataset.fScore = getCellGScore(adjacent) + getCellHScore(adjacent);
+                adjacent.cameFrom = currentCell;
+                if (!openSet.has(adjacent)){
+                    openSet.add(adjacent);
+                    openQ.queue(adjacent);
+                    if (adjacent != startCell && adjacent != endCell){
+                        // mark it as open?
+                        adjacent.style.backgroundColor = OPEN_COLOR;
+                    }
+                }
+            }
+            // TODO: actually visualize the algorithm instead of just the path
+            // updateCellDisplay(adjacent);
+        }
+    }
+  
+    if (endCell.cameFrom == undefined){
+        // TODO: do something a little cleaner!
+        alert("No path was found.");
+        return;
+    }
+    reconstructPath();
+
+    // TODO: refactor
+    // one time event listener on grid click, that clears the path and resets the
+    // "came froms", but leaves the obstacles and start and end cells for more tinkering
+    // gridDiv.addEventListener("mousedown", softReset, {once: true});
+}
+
+function softReset(){
+    if (endCell) endCell.cameFrom = undefined;
+    clearPath();
+
+    // TODO: come up with a better solution here
+    cellsMatrix.forEach(row => row.forEach(cell => {
+        if (cell != startCell && cell != endCell && !obstacles.includes(cell)) resetCell(cell);
+    }));
+}
+
+function clearPath(){
+    pathCells.forEach(cell => {
+        if (cell != startCell && cell != endCell) resetCell(cell);
+    });
+
+    pathCells = [];
+}
+
+function reconstructPath(){
+    let currentCell = endCell;
+    while (currentCell != undefined){
+        pathCells.push(currentCell);
+        currentCell = currentCell.cameFrom;
+    }
+    pathCells.reverse();
+    const MS = 50;
+    let i = 0;
+    const interval = setInterval(() => {
+        const cell = pathCells[i++];
+        if (cell != startCell && cell != endCell){
+            animateFillIn(cell, "cyan")
+        }
+        
+        if (i >= pathCells.length) clearInterval(interval);
+    }, MS);
+}
+
+function calculateRowCount(){
+    return Math.floor(window.innerHeight / (CELL_SIZE_PX + CELL_BORDER_PX*2)) - 1;    
+}
+
+function calculateColCount(){
+    return Math.floor(window.innerWidth / (CELL_SIZE_PX + CELL_BORDER_PX*2)) - 1;
+}
+
+function hasPath(){
+    return pathCells.length > 0;
+}
+
+const ANIMATION_TIME = "0.3s";
 const ANIMATION_TIMING_FUNCTION = "ease-in";
 
 const NO_BUTTONS = 0;
@@ -305,29 +460,33 @@ const START_COLOR = "green";
 const END_COLOR = "red";
 const OBSTACLE_COLOR = "blue";
 const DEFAULT_COLOR = "white";
-const ADJACENT_COLOR = "rgb(238, 126, 238)";
-const CELLS = 6;
-const CELL_SIZE_PX = 75;
+const CLOSED_COLOR = "magenta";
+const OPEN_COLOR = "orange";
+const CELL_BORDER_PX = 1;
+const CELL_BORDER_COLOR = "black";
+const CELL_BORDER = `${CELL_BORDER_PX}px solid ${CELL_BORDER_COLOR}`;
+const CELL_SIZE_PX = 25;
+const ROW_COUNT = calculateRowCount();
+const COL_COUNT = calculateColCount();
 
 // keys are html elements representing cells, values is 
 // array of row and column in grid
 let cellsMatrix = []; 
 let startCell = null;
-let endCell = null
+let endCell = null;
 let obstacles = [];
 let leftClickDragEnabled = false;
-
+let pathCells = [];
 const gridDiv = document.querySelector(".grid-div");
-createGrid(CELLS, CELL_SIZE_PX);
-
+createGrid(ROW_COUNT, COL_COUNT, CELL_SIZE_PX);
 
 applyMouseDownListeners();
 disableRightClickMenu();
 applyMouseOverListeners();
-applySpaceListener();
+applyKeypressListener();
 
-// TESTING STUFF TODO: remove this
-const btn = document.querySelector(".btn");
-btn.addEventListener("click", () => {
-    firstStep();
+
+// FOR TESTING
+document.querySelector(".btn").addEventListener("click", function(){
+    console.log(`pathCells.length: ${pathCells.length}`);
 });
