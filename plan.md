@@ -67,6 +67,7 @@ see if this makes fat grids run better??
 bypasses the softReset functionality!!
 - path has been found. grid is cleared with c. click (left or right) on a cell, gets an error.
 - interuppting the algorithm by clicking (need to also check C, space, etc.)
+- path has been found. right clicking the grid clears the path, but instantly, not as an animation
 
 ### **COMPLETED TODOS**
 - Make the ui on a basic level
