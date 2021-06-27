@@ -4,6 +4,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
 }
 
 .grid-div {
@@ -65,3 +66,5 @@ body {
 .btn {
     font-size: 40px;
 }
+
+

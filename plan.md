@@ -31,25 +31,27 @@ else
 ### **CURRENT TASK**
 
 ### **WHERE I LEFT OFF**
-NEED TO MATH CHECK THE CALCULATIONS FOR `firstStep()`
-just implemented the firstStep thing.
-I'd prefer to get a slightly cleaner, more DRY implementation.
+doing some bug squishing.
+want to figure out how to animate the algorithm. it's a bit of a doozy. I don't think
+i really understand the problem well enough yet to expect to come up with a good solution.
+then i'll want to keep working through the todos, try using sets for quick operation,
+change the event listeners, and so on. no need to recount the entire todo here
 
-kinda sorta understand the algorithm, was messing with 
-just making the page do the first step of the process i.e. indicate which cells are the start node's neighbors. need to deal with grid bounds and obstacles. also trying to just see how the cellsMatrix works. I should be able to do what I was trying to do in `getCellsToCheck` (where i was changing the color by using the row and col for the matrix) but it wasn't working.
-
-
-- also take a look at wtf you're doing with your function calls. in one area on 
-a right click you call `cellRightClicked` which literally just called `resetCell`. Is
-this `cellRightClicked` function really necessary?
 
 ### **TODO**
-- CLEAN TODOS!
-- clearing grid needs to also remove score text from cells
+- IDEA: change the event listeners to being on the grid, then deducing which cell
+was clicked using idk pixels and shit, instead of n^2 application of event listeners.
+see if this makes fat grids run better??
+- animate/color the entire process, not just the path
+- after algorithm runs, what should happen?
+- figure out how to deal with unreachable end cell
+- SHOULD I SWITCH OBSTACLES DS TO A SET???
 - some sort of indication that the algorithm can't be run when start and end aren't placed
 - Figure out how the algorithm even works
-  - What the different states of cells? 
-  - What heuristic to use? Euclidean or Manhattan?
+- make some clean basic tutorial ("click to place start". "click to place end" 
+"now draw some walls" "space to run" "want to start over? hit c. or keep drawing" and so on)
+- draw path as a line instead of as blocks such as: https://qiao.github.io/PathFinding.js/visual/
+
 
 
 - Style the ui
@@ -61,11 +63,22 @@ this `cellRightClicked` function really necessary?
 - Maybe add a random maze generator?
 
 ### **BUGS**
-- WTF IS THAT?? I CAN COLOR THE MFIN DIVS THAT DISPLAY THE SCORES????
+- path has been found. clicking (left or right) outside of the grid and dragging in
+bypasses the softReset functionality!!
+- path has been found. grid is cleared with c. click (left or right) on a cell, gets an error.
+- interuppting the algorithm by clicking (need to also check C, space, etc.)
 
 ### **COMPLETED TODOS**
 - Make the ui on a basic level
 - Implement basic clicking functionality
+- understand the algorithm
+- implement the algorithm
+- a lot of other stuff, let's be real
+- spend 2.5 hours trying to get requirejs to work only to
+put a second script in my html like a barbarian
+- don't color the end and start cell when showing the path
+- fix the wall phasing problem
+
 
 
 ### **BUGS FIXED**
@@ -74,5 +87,8 @@ then replaced, the drag functionality breaks (or rather, exists)
 - sequence of events: place start, place end, place some obstacles. remove start or end
 and place it on an obstacle => DOESN'T have the animated fill effect
 - when you unfill then immediately try to fill, the block ends up uncolored
+- WTF IS THAT?? I CAN COLOR THE MFIN DIVS THAT DISPLAY THE SCORES????
+- path has been found. Right clicking on a path cell skips the unfill animation, and
+creates an infinite error loop (not yet investigated)
 
 
