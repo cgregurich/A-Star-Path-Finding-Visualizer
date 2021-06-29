@@ -7,6 +7,47 @@ body {
     flex-direction: column;
 }
 
+.legend {
+    display: flex;
+}
+
+.legend > ul {
+    list-style-type: none;
+}
+
+.legend li {
+    display: block;
+}
+
+
+.legend-color {
+    width: 10px;
+    height: 10px;
+    border: 2px solid black;
+    display: inline-block;
+}
+
+.legend-label {
+    font-family: Roboto, sans-serif;
+    font-weight: bold;
+    display: inline;
+    margin: 10px;
+}
+
+.start {
+
+}
+
+.end {
+
+}
+
+.obstacle {
+
+}
+
+
+
 .grid-div {
     user-select: none;
 }
@@ -19,6 +60,7 @@ body {
     background-image: border-radius 3px;
     position: relative;
 }
+
 
 .score {
     position: absolute;

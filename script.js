@@ -1,5 +1,4 @@
 
-
 function createGrid(rowCount, colCount, cellSize){
     // Essentially put a matrix of divs as gridDiv's children
     // Makes a square
@@ -46,51 +45,6 @@ function createCellScoreChildren(cell){
     cell.appendChild(gScore);
     cell.appendChild(hScore);
     cell.appendChild(fScore);
-}
-
-function mouseDownOnCell(e){
-    if (hasPath()) softReset();
-    if (e.buttons == LEFT_CLICK){
-        cellLeftClick(e.target);
-    }
-    else if (e.buttons == RIGHT_CLICK){
-        cellRightClick(e.target);
-    }
-}
-
-function mouseOverCell(e){
-    if (e.buttons == NO_BUTTONS) return;
-    if (e.buttons == LEFT_CLICK) {
-        if (!leftClickDragEnabled) return;
-        cellLeftClick(e.target);
-    }
-    else if (e.buttons == RIGHT_CLICK){
-        cellRightClick(e.target);
-    }
-}
-
-function cellLeftClick(cell){
-    if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
-
-    // user is placing start or end on an obstacle, so delete obstacle from array
-    if (obstacles.includes(cell) && (!startCell || !endCell)){
-        deleteObstacle(cell);
-    }
-    colorCell(cell);
-
-    // one time mouseup listener so the drag effect isn't enabled too early
-    // if it was, then you could make obstacles right after placing the end node
-    // without letting go of left click; this is not desired behavior!
-    if (startCell && endCell && !leftClickDragEnabled) {
-        document.addEventListener("mouseup", () => leftClickDragEnabled = true, {once: true});
-    }
-}
-
-function cellRightClick(cell){
-    if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
-    if (cell != startCell && cell != endCell && !obstacles.includes(cell)) return;
-    resetCell(cell);
-    
 }
 
 function colorCell(cell){
@@ -212,6 +166,7 @@ function applyKeypressListener(){
 }
 
 function keyPressed(e){
+    if (isAlgorithmRunning) return;
     if (e.code == "Space"){
         e.preventDefault();
         if (!startCell || !endCell){
@@ -220,16 +175,71 @@ function keyPressed(e){
         }
         
         e.preventDefault();
-        aStarAlgorithm();
+        aStarStart();
     }
+
+    // Allows more interesting clear functionality:
+    // if algorithm has been run, hitting C to clear will clear
+    // the path and the algorithm residue.
+    // hitting C again will clear everything after that.
     if (e.code == "KeyC"){
-        resetGrid();
+        if (endCell?.cameFrom) softReset();
+        else {
+            resetGrid();
+        }
     }
 }
 
-
 function disableRightClickMenu(){
     document.addEventListener("contextmenu", e => e.preventDefault());
+}
+
+
+function mouseDownOnCell(e){
+    if (isAlgorithmRunning) return;
+    if (hasPath()) softReset();
+    if (e.buttons == LEFT_CLICK){
+        cellLeftClick(e.target);
+    }
+    else if (e.buttons == RIGHT_CLICK){
+        cellRightClick(e.target);
+    }
+}
+
+function mouseOverCell(e){
+    if (isAlgorithmRunning) return;
+    if (e.buttons == NO_BUTTONS) return;
+    if (e.buttons == LEFT_CLICK) {
+        if (!leftClickDragEnabled) return;
+        cellLeftClick(e.target);
+    }
+    else if (e.buttons == RIGHT_CLICK){
+        cellRightClick(e.target);
+    }
+}
+
+function cellLeftClick(cell){
+    if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
+
+    // user is placing start or end on an obstacle, so delete obstacle from array
+    if (obstacles.includes(cell) && (!startCell || !endCell)){
+        deleteObstacle(cell);
+    }
+    colorCell(cell);
+
+    // one time mouseup listener so the drag effect isn't enabled too early
+    // if it was, then you could make obstacles right after placing the end node
+    // without letting go of left click; this is not desired behavior!
+    if (startCell && endCell && !leftClickDragEnabled) {
+        document.addEventListener("mouseup", () => leftClickDragEnabled = true, {once: true});
+    }
+}
+
+function cellRightClick(cell){
+    if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
+    if (cell != startCell && cell != endCell && !obstacles.includes(cell)) return;
+    resetCell(cell);
+    
 }
 
 function getAdjacentCells(rootCell){
@@ -338,67 +348,75 @@ function isGoingThroughWall(rootCell, adjCell){
 
 
 
-function aStarAlgorithm(){
+function aStarRecursive(openQ, openSet, closedSet){
+    isAlgorithmRunning = true;
+    const currentCell = openQ.dequeue();
+    
+    openSet.delete(currentCell);
+    closedSet.add(currentCell);
 
+    // mark it as closed
+    if (currentCell != startCell && currentCell != endCell){
+        animateFillIn(currentCell, CLOSED_COLOR);
+    }
+     
+    const adjacents = getAdjacentCells(currentCell);
+
+    for (let adjacent of adjacents){
+        if (closedSet.has(adjacent)) continue;
+        if (obstacles.includes(adjacent)) continue;
+        if (isGoingThroughWall(currentCell, adjacent)) continue;
+        
+        const gScore = calculateGScore(currentCell, adjacent);
+        if (gScore < getCellGScore(adjacent) || !openSet.has(adjacent)) {
+            adjacent.dataset.gScore = gScore;
+            adjacent.dataset.hScore = calculateHScore(adjacent);
+            adjacent.dataset.fScore = getCellGScore(adjacent) + getCellHScore(adjacent);
+            adjacent.cameFrom = currentCell;
+            if (!openSet.has(adjacent)){
+                openSet.add(adjacent);
+                openQ.queue(adjacent);
+                if (adjacent != startCell && adjacent != endCell){
+                    // mark it as open?
+                    // adjacent.style.backgroundColor = OPEN_COLOR;
+                    animateFillIn(adjacent, OPEN_COLOR);
+                }
+            }
+        }
+        // TODO: actually visualize the algorithm instead of just the path
+        // updateCellDisplay(adjacent);
+    }
+
+    if (currentCell == endCell) {
+        setTimeout(reconstructPath, TIME_BEFORE_RECONSTRUCT_PATH);
+        isAlgorithmRunning = false;
+        return;
+    }
+
+    // keep recursively running the algorithm if there are more open cells
+    if (openQ.length > 0){
+        setTimeout(() => aStarRecursive(openQ, openSet, closedSet), STEP_TIME);
+    }
+
+    else{
+        setTimeout(() => alert("No Path Found"), TIME_BEFORE_NO_PATH_FOUND_ALERT);
+        isAlgorithmRunning = false;
+    }
+}
+
+function aStarStart(){
+
+    // Setup the datastructures needed for the algorithm
     const openQ = createPriorityQueue();
     const openSet = new Set();
     const closedSet = new Set();
     openQ.queue(startCell);
-    // updateCellDisplay(startCell);
 
+    isAlgorithmRunning = true;
+    aStarRecursive(openQ, openSet, closedSet);
+    isAlgorithmRunning = false;
+ 
 
-    while (openQ.length != 0){
-        const currentCell = openQ.dequeue();
-        
-        openSet.delete(currentCell);
-        closedSet.add(currentCell);
-        // mark it as closed
-        if (currentCell != startCell && currentCell != endCell){
-            // currentCell.style.backgroundColor = CLOSED_COLOR;
-        }
-        
-        if (currentCell == endCell) {
-            break;
-        }
-
-        const adjacents = getAdjacentCells(currentCell);
-
-        for (let adjacent of adjacents){
-            if (closedSet.has(adjacent)) continue;
-            if (obstacles.includes(adjacent)) continue;
-            if (isGoingThroughWall(currentCell, adjacent)) continue;
-          
-            const gScore = calculateGScore(currentCell, adjacent);
-            if (gScore < getCellGScore(adjacent) || !openSet.has(adjacent)) {
-                adjacent.dataset.gScore = gScore;
-                adjacent.dataset.hScore = calculateHScore(adjacent);
-                adjacent.dataset.fScore = getCellGScore(adjacent) + getCellHScore(adjacent);
-                adjacent.cameFrom = currentCell;
-                if (!openSet.has(adjacent)){
-                    openSet.add(adjacent);
-                    openQ.queue(adjacent);
-                    if (adjacent != startCell && adjacent != endCell){
-                        // mark it as open?
-                        // adjacent.style.backgroundColor = OPEN_COLOR;
-                    }
-                }
-            }
-            // TODO: actually visualize the algorithm instead of just the path
-            // updateCellDisplay(adjacent);
-        }
-    }
-  
-    if (endCell.cameFrom == undefined){
-        // TODO: do something a little cleaner!
-        alert("No path was found.");
-        return;
-    }
-    reconstructPath();
-
-    // TODO: refactor
-    // one time event listener on grid click, that clears the path and resets the
-    // "came froms", but leaves the obstacles and start and end cells for more tinkering
-    // gridDiv.addEventListener("mousedown", softReset, {once: true});
 }
 
 function softReset(){
@@ -415,7 +433,6 @@ function clearPath(){
     pathCells.forEach(cell => {
         if (cell != startCell && cell != endCell) resetCell(cell);
     });
-
     pathCells = [];
 }
 
@@ -431,7 +448,7 @@ function reconstructPath(){
     const interval = setInterval(() => {
         const cell = pathCells[i++];
         if (cell != startCell && cell != endCell){
-            animateFillIn(cell, "cyan")
+            animateFillIn(cell, PATH_COLOR);
         }
         
         if (i >= pathCells.length) clearInterval(interval);
@@ -456,18 +473,23 @@ const ANIMATION_TIMING_FUNCTION = "ease-in";
 const NO_BUTTONS = 0;
 const LEFT_CLICK = 1;
 const RIGHT_CLICK = 2;
-const START_COLOR = "green";
-const END_COLOR = "red";
-const OBSTACLE_COLOR = "blue";
-const DEFAULT_COLOR = "white";
-const CLOSED_COLOR = "magenta";
-const OPEN_COLOR = "orange";
+const BODY_COLOR = "lightgrey";
+const START_COLOR = "#8884ff";
+const END_COLOR = "#5a6b9b";
+const DEFAULT_COLOR = "#c5c6c8";
+const OBSTACLE_COLOR = "#3a284d";
+const CLOSED_COLOR = "#46a29f";
+const OPEN_COLOR = "#563e78";
+const PATH_COLOR = "#66fcf1";
+const STEP_TIME = 10;
+const TIME_BEFORE_RECONSTRUCT_PATH = 200;
+const TIME_BEFORE_NO_PATH_FOUND_ALERT = 1000;
 const CELL_BORDER_PX = 1;
 const CELL_BORDER_COLOR = "black";
 const CELL_BORDER = `${CELL_BORDER_PX}px solid ${CELL_BORDER_COLOR}`;
-const CELL_SIZE_PX = 25;
-const ROW_COUNT = calculateRowCount();
-const COL_COUNT = calculateColCount();
+const CELL_SIZE_PX = 20;
+const ROW_COUNT = calculateRowCount() - 2;
+const COL_COUNT = calculateColCount() - 2;
 
 // keys are html elements representing cells, values is 
 // array of row and column in grid
@@ -476,7 +498,9 @@ let startCell = null;
 let endCell = null;
 let obstacles = [];
 let leftClickDragEnabled = false;
+let isAlgorithmRunning = false;
 let pathCells = [];
+document.querySelector("body").style.backgroundColor = BODY_COLOR;
 const gridDiv = document.querySelector(".grid-div");
 createGrid(ROW_COUNT, COL_COUNT, CELL_SIZE_PX);
 
@@ -485,8 +509,3 @@ disableRightClickMenu();
 applyMouseOverListeners();
 applyKeypressListener();
 
-
-// FOR TESTING
-document.querySelector(".btn").addEventListener("click", function(){
-    console.log(`pathCells.length: ${pathCells.length}`);
-});

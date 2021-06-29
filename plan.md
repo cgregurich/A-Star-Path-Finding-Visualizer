@@ -31,14 +31,14 @@ else
 ### **CURRENT TASK**
 
 ### **WHERE I LEFT OFF**
-doing some bug squishing.
-want to figure out how to animate the algorithm. it's a bit of a doozy. I don't think
-i really understand the problem well enough yet to expect to come up with a good solution.
-then i'll want to keep working through the todos, try using sets for quick operation,
-change the event listeners, and so on. no need to recount the entire todo here
+- disabling input as algorithm run sorta implemented. needs to be tested further. 
+- i'd prefer to make the isAlgorithmRunning bit of aStarRecursive a little more DRY (repeating isAlgorithmRunning = false twice)
 
 
 ### **TODO**
+- line for found path, instead of/as well as colored cells
+- understand how the algorithm animation even works. set timeout, conditionals, aStarAlgorithm vs aStarStep, etc.!!
+- implement a slider. find the upper and lower bound of time for the algorithm (depends on cell size tho) and make a (CLEAN) slider that uses these bounds as a function
 - IDEA: change the event listeners to being on the grid, then deducing which cell
 was clicked using idk pixels and shit, instead of n^2 application of event listeners.
 see if this makes fat grids run better??
@@ -68,6 +68,10 @@ bypasses the softReset functionality!!
 - path has been found. grid is cleared with c. click (left or right) on a cell, gets an error.
 - interuppting the algorithm by clicking (need to also check C, space, etc.)
 - path has been found. right clicking the grid clears the path, but instantly, not as an animation
+- deal with how things work when the algorithm is running (c should stop it, space pause? what about clicking??)
+- when no path is found, clicking and stuff doesn't clear the colored cells
+- disappointing mouse functionality after path is found. does drag work? right click? etc.
+- hitting space after algorithm is finished is bad because it doesn't clear the algorithm residue, so fs up the whole enchilada. 
 
 ### **COMPLETED TODOS**
 - Make the ui on a basic level
