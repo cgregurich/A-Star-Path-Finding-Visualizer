@@ -31,36 +31,19 @@ else
 ### **CURRENT TASK**
 
 ### **WHERE I LEFT OFF**
-- making tutorial popup and popdown. 
-- found a bug: go through tutorial, get to last page, hit prev once or more, then hit next -> still holds the "done" event listener!
-- i kinda want to make it so that the hint icon isn't there until the tutorial finishes
-- make an X in the tutorial that stops the tutorial early.
+refactored the code, put things into their own script files. Did some testing, stuff seems to be working more or less. need to continue just messsing around with it to see what else breaks. 
 
-// CLEAR BELOW!
-- working on implementing the tutorial. need to actually make the tutorial work.
-- make the hint button re-start the tutorial.
-- making the tutorial work. i'd like to make the buttons stay in the same spot.
-- also obv make the tutorial work when the user actually follows the instructions
-instead of clicking the buttons.
+
 
 ### **TODO** 
 
-- making tutorial
-when page loads (first time only?) show tutorial:
-left click to place start
-left click again to place end
-now draw some obstacles
-space to run
-c to clear (first time clears residue, second time walls, 3rd time start and end)
-move the slider around to change how fast the algorithm runs!
+TUTORIAL
 - add text effect?
 - add button effects?
 - add progress bar??
-- make tutorial "go into" the question mark icon??
 - arrows instead of text for buttons
 ////////////
 
-- change hint buttons to arrows instead of prev and next
 - add clean style effects to hints
 - line for found path, instead of/as well as colored cells
 - IDEA: change the event listeners to being on the grid, then deducing which cell
@@ -69,16 +52,14 @@ see if this makes fat grids run better??
 
 - SHOULD I SWITCH OBSTACLES DS TO A SET???
 
-- make some clean basic tutorial ("click to place start". "click to place end" 
-"now draw some walls" "space to run" "want to start over? hit c. or keep drawing" and so on)
 - draw path as a line instead of as blocks such as: https://qiao.github.io/PathFinding.js/visual/
 
-- clean up script.js; make more script files?
 
 - change sizes of the grid?
 - How to not make fat grids slow down the webpage??
 - Maybe also do Dijkstra's?
 - Maybe add a random maze generator?
+- add a little "learn more" type thing to link to the a star algorithm or something?
 
 
 ### **BUGS**
@@ -111,6 +92,11 @@ put a second script in my html like a barbarian
 - figure out how to animate the algorithm
 - how to do like a time scale?
 - make slider not resize when stepSpeed hits double or triple digits
+- make some clean basic tutorial 
+- making tutorial popup and popdown. 
+- make an X in the tutorial that stops the tutorial early.
+- make tutorial "go into" the question mark icon??
+- clean up script.js; make more script files?
 
 
 
@@ -134,6 +120,7 @@ bypasses the softReset functionality!!
 - deal with how things work when the algorithm is running (c should stop it, space pause? what about clicking??)
 - disappointing mouse functionality after path is found. does drag work? right click? etc.
 - when no path is found, clicking and stuff doesn't clear the colored cells
+- found a bug: go through tutorial, get to last page, hit prev once or more, then hit next -> still holds the "done" event listener!
 
 
 
