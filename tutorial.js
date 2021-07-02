@@ -1,0 +1,91 @@
+function startTutorial(){
+    console.log("start tutorial");
+    isTutorialRunning = true;
+    hintIndex = 0;
+    hintContainer.style.display = "block";
+    hintContainer.classList.remove("hint-container--closed");
+    updateButtonsStates();
+    updateHintText();
+}
+
+function stopTutorial(){
+    console.log("stop tutorial");
+    isTutorialRunning = false;
+    hintContainer.classList.add("hint-container--closed");
+}
+
+function hintIconClicked(){
+    console.log(`isTutorialRunning: ${isTutorialRunning}`);
+    isTutorialRunning ? stopTutorial() : startTutorial();
+}
+
+function prevClicked(){
+    hintIndex = clamp(0, hints.length-1, hintIndex-1);
+    updateHintText();
+    updateButtonsStates();
+    hintPrev.blur();
+}
+
+function nextClicked(){
+    hintIndex = clamp(0, hints.length-1, hintIndex+1);
+    updateHintText();
+    updateButtonsStates();
+    hintNext.blur();
+}
+
+function updateButtonsStates(){
+    if (hintIndex == hints.length - 1) {
+        hintNext.innerText = "Done!";
+        hintNext.addEventListener("click", stopTutorial, {once: true});
+    }
+    else {
+        hintNext.removeEventListener("click", stopTutorial);
+        hintNext.innerText = "Next";
+    }
+
+    hintIndex == 0 ? hintPrev.disabled = true : hintPrev.disabled = false;
+}
+
+
+
+function clamp(min, max, value){
+    if (value > max) return max;
+    if (value < min) return min;
+    return value;
+}
+
+function updateHintText(){
+    hintText.textContent = hints[hintIndex];
+}
+
+
+const hints = [
+    "Left click to place the start node",
+    "Left click again to place the end node",
+    "And now left click to draw obstacles",
+    "Right click to remove things",
+    "Space to run the algorithm",
+    "After it's done, C clears the algorithm's residue",
+    "(So does left and right click)",
+    "Hitting C again clears the obstacles",
+    "And C a third time clears the start and end nodes",
+    "Use the slider to change the speed of the algorithm",
+    "That's it!"
+];
+
+const hintContainer = document.querySelector(".hint-container");
+const hintText = document.querySelector(".hint-text");
+const hintPrev = document.querySelector(".hint-prev");
+const hintNext = document.querySelector(".hint-next");
+const hintIcon = document.querySelector(".hint-icon");
+const hintExit = document.querySelector(".hint-exit");
+
+let hintIndex = 0;
+let isTutorialRunning = false;
+
+hintPrev.addEventListener("click", prevClicked);
+hintNext.addEventListener("click", nextClicked);
+hintIcon.addEventListener("click", hintIconClicked);
+hintExit.addEventListener("click", stopTutorial);
+
+export { startTutorial };
