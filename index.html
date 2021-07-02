@@ -1,40 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="stylesheet" href="styles.css">
-<head>
-  <title>A* Algorithm</title>
+  <head>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+    <title>A* Algorithm</title>
 </head>
 <body>
-  <!-- <div class="legend">
-    <ul>
-     <li>
-       <div class="legend-color start" data-color="START_COLOR"></div>
-       <p class="legend-label">Start</p>
-     </li>
-     <li>
-       <div class="legend-color end" data-color="END_COLOR"></div>
-       <p class="legend-label">End</p>
-     </li>
-     <li>
-       <div class="legend-color obstacle" data-color="OBSTACLE_COLOR"></div>
-       <p class="legend-label">Obstacle</p>
-     </li>
-     <li>
-       <div class="legend-color open" data-color="OPEN_COLOR"></div>
-       <p class="legend-label">Open</p>
-     </li>
-     <li>
-       <div class="legend-color closed" data-color="CLOSED_COLOR"></div>
-       <p class="legend-label">Closed</p>
-     </li>
-     <li>
-       <div class="legend-color path" data-color="PATH_COLOR"></div>
-       <p class="legend-label">Path</p>
-     </li>
-    </ul>
-  </div> -->
+  <div class="hint-container hint-container--closed">
+    <!-- <i class="far fa-imes-circle hint-exit"></i> -->
+    <i class="fas fa-times-circle hint-exit"></i>
+    <div class="hint-text">Left click to place start node.</div>
+    <button class="hint-prev" disabled>Prev</button>
+    <button class="hint-next">Next</button>
+
+  </div>
   <div class="grid-div"></div>
+  <div class="bottom-container">
+    <i class="far fa-question-circle hint-icon"></i>
+    <div class="slider-container">
+      <p>slower</p>
+      <input type="range" min="1" max="100" value="50" step="-1" class="slider">
+      <p>faster</p>
+      <p class="speed-label">50ms</p>
+    </div>
+  </div>
+  
   <script src="js-priority-queue/priority-queue.js"></script>
-<script src="script.js" defer></script>
+  <script type="module" src="tutorial.js"></script>
+  <script type="module" src="script.js" defer></script>
 </body>
 </html>

@@ -1,52 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 
+* {
+    user-select: none;
+}
+
 body {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    position: relative;
 }
-
-.legend {
-    display: flex;
-}
-
-.legend > ul {
-    list-style-type: none;
-}
-
-.legend li {
-    display: block;
-}
-
-
-.legend-color {
-    width: 10px;
-    height: 10px;
-    border: 2px solid black;
-    display: inline-block;
-}
-
-.legend-label {
-    font-family: Roboto, sans-serif;
-    font-weight: bold;
-    display: inline;
-    margin: 10px;
-}
-
-.start {
-
-}
-
-.end {
-
-}
-
-.obstacle {
-
-}
-
-
 
 .grid-div {
     user-select: none;
@@ -66,23 +30,23 @@ body {
     position: absolute;
     padding: 0 .3em;
     font-family: "Roboto", sans-serif;
-    /* font-size: 0.3em; */
+    font-size: 0.1em;
   }
 
-  .g-score {
+.g-score {
     bottom: 0;
     left: 0;
-  }
+}
 
-  .h-score {
+.h-score {
     bottom: 0;
     right: 0;
-  }
+}
 
-  .f-score {
+.f-score {
     top: 0;
     left: 0;
-  }
+}
 
 @keyframes fill-in-animation {
     0% {
@@ -104,9 +68,199 @@ body {
     }
 }
 
-/* TESTING STUFF TODO: remove */
-.btn {
-    font-size: 40px;
+.bottom-container {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.slider-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.slider-container > p {
+    margin: 15px;
+}
+
+.slider {
+    direction: rtl;
+    margin-top: 10px;
+    -webkit-appearance: none;
+    width: 75%;
+    height: 25px;
+    background: #9478ba;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    border: 1px solid black;
+    border-radius: 10px;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 30px;
+    height: 40px;
+    background: #46a29f;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid black;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    background-color: #409693;
+    transition: 0.3s;
+}
+
+.slider::-webkit-slider-thumb:active {
+    background-color: #3c8b89;
+
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #04aa6d;
+    cursor: pointer;
+}
+
+.speed-label, p {
+    font-family: Roboto, sans-serif;
+    font-size: 24px;
+}
+
+.speed-label {
+    width: 100px;
+}
+
+.text {
+    font-family: sans-serif;
+    font-size: 30px;
+    text-align: center;
+}
+ 
+.shake {
+    animation: 0.6s 0s shake;
+  }
+  
+@keyframes shake {
+    0% {
+        transform: translate(0);
+    }
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translate(0.8em);
+    }
+    10%,
+    30%,
+    50% {
+        transform: translate(-0.2em);
+    }
+    70%,
+    100%{
+        transform: translate(0);
+    }
 }
 
 
+
+.hint-container {
+    z-index: 1;
+    font-family: Roboto, sans-serif;
+    height: 150px;
+    width: 200px;
+    position: absolute;
+    border: 3px solid black;
+    background-color: white;
+    padding: 15px;
+    left: 50px;
+    bottom: 75px;
+    transition: transform 0.4s ease-in-out;
+}
+
+.hint-text {
+    font-size: 20px;
+    text-align: start;
+    margin: auto;
+}
+
+.hint-container > button {
+    font-size: 20px;
+    background-color: #a793c2;
+    border: 3px solid black;
+}
+
+.hint-container > button:hover {
+    background-color: #8d73b0;
+}
+
+.hint-container > button:disabled {
+    background-color: #ddd5e7;
+    cursor:not-allowed;
+}
+
+.hint-prev {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 15px;
+}
+
+.hint-next {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    margin: 15px;
+}
+
+.hint-container--closed {
+    transform: translate(-125px, 130px) scale(0);
+}
+
+.hint-icon {
+    font-size: 40px;
+    line-height: 0;
+    color: #76589d;
+    margin-right: 100px;
+    margin-left: 25px;
+    border-radius: 100%;
+    transition: box-shadow 0.3s;
+}
+
+.hint-icon:hover {
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 0 20px 10px #e8e8e8;
+}
+
+
+
+.hint-exit {
+    font-size: 40px;
+    color: #76589d;
+    position: absolute;
+    top: -30px;
+    left: -30px;
+    border-radius: 50%;
+    background-color: black;
+    border: 3px solid black;
+    transition: color 0.2s;
+}
+
+.hint-exit:hover {
+    color: #9076b2;
+    transition: 0.2s;
+}
+
+.hint-exit:active {
+    color: #aa97c4;
+    background-color: grey;
+    border-color: grey;
+    transition: 0s;
+}

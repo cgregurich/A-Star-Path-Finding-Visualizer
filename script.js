@@ -1,3 +1,16 @@
+function setStepSpeedFromLocalStorage(){
+    stepSpeed = localStorage.getItem("stepSpeed");
+    if (!stepSpeed) stepSpeed = 50;
+    slider.value = stepSpeed;
+    speedLabel.textContent = `${stepSpeed}ms`;
+}
+
+function sliderMoved(e){
+    stepSpeed = slider.value;
+    speedLabel.textContent = `${stepSpeed}ms`;
+    localStorage.setItem("stepSpeed", stepSpeed);
+}
+
 
 function createGrid(rowCount, colCount, cellSize){
     // Essentially put a matrix of divs as gridDiv's children
@@ -82,12 +95,6 @@ function animateUnfill(cell){
     // tell the CSS what color to use for the animation
     cell.style.backgroundImage = `linear-gradient(${currentCellColor}, ${currentCellColor})`;
 
-    // TODO: for testing, remove this
-    // cell.innerText = "";
-
-    // temporarily remove the mouse events to avoid interrupting the animation
-    cell.removeEventListener("mousemove", mouseOverCell);
-    cell.removeEventListener("mousedown", mouseDownOnCell);
 
     // once animation is over, change a few properties
     cell.addEventListener("animationend", () => {
@@ -142,23 +149,25 @@ function resetCell(cell){
     cell.cameFrom = undefined;
 }
 
-function resetGrid(){
-    obstacles = [];
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => resetCell(cell)));
-    leftClickDragEnabled = false;
-}
-
 function deleteObstacle(cell){
     obstacles.splice(obstacles.indexOf(cell), 1);
 }
 
 
 function applyMouseOverListeners(){
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousemove", mouseOverCell)));
+    for (let row of cellsMatrix){
+        for (let cell of row){
+            cell.addEventListener("mousemove", mouseOverCell);
+        }
+    }
 }
 
 function applyMouseDownListeners(){
-    gridDiv.childNodes.forEach(row => row.childNodes.forEach(cell => cell.addEventListener("mousedown", mouseDownOnCell)));
+    for (let row of cellsMatrix){
+        for (let cell of row){
+            cell.addEventListener("mousedown", mouseDownOnCell);
+        }
+    }
 }
 
 function applyKeypressListener(){
@@ -166,15 +175,20 @@ function applyKeypressListener(){
 }
 
 function keyPressed(e){
-    if (isAlgorithmRunning) return;
+    e.preventDefault();
+    if (isPathDrawing) return;
     if (e.code == "Space"){
-        e.preventDefault();
+        // TODO: pause the algorithm?? yeesh
+        if (isAlgorithmRunning) return;
+        
         if (!startCell || !endCell){
-            alert("uh uh bud");
+            indicateCantStart();
+            // alert("uh uh bud");
             return;
         }
-        
-        e.preventDefault();
+        if (hasRan){
+            softReset();
+        }
         aStarStart();
     }
 
@@ -183,21 +197,30 @@ function keyPressed(e){
     // the path and the algorithm residue.
     // hitting C again will clear everything after that.
     if (e.code == "KeyC"){
-        if (endCell?.cameFrom) softReset();
-        else {
-            resetGrid();
+
+        // cancel algorithm when it's in progress
+        if (isAlgorithmRunning){
+            isAlgorithmRunning = false;
+            setTimeout(softReset, stepSpeed); 
+            return;
         }
+        // Used to do a softreset when there was no path found
+        if (hasRan) softReset();
+        else if (obstacles.length > 0) clearObstacles();
+        else resetGrid();
     }
 }
+
 
 function disableRightClickMenu(){
     document.addEventListener("contextmenu", e => e.preventDefault());
 }
 
-
 function mouseDownOnCell(e){
-    if (isAlgorithmRunning) return;
-    if (hasPath()) softReset();
+    if (isAlgorithmRunning || isPathDrawing) return;
+    if (hasPath() || hasRan) {
+        softReset();
+    }
     if (e.buttons == LEFT_CLICK){
         cellLeftClick(e.target);
     }
@@ -207,10 +230,13 @@ function mouseDownOnCell(e){
 }
 
 function mouseOverCell(e){
-    if (isAlgorithmRunning) return;
+    if (isAlgorithmRunning || isPathDrawing) return;
     if (e.buttons == NO_BUTTONS) return;
+    if (hasRan || hasPath()) softReset();
     if (e.buttons == LEFT_CLICK) {
-        if (!leftClickDragEnabled) return;
+        if (!leftClickDragEnabled) {
+            return;
+        }
         cellLeftClick(e.target);
     }
     else if (e.buttons == RIGHT_CLICK){
@@ -239,7 +265,18 @@ function cellRightClick(cell){
     if (Array.from(cell.classList).includes("score")) cell = cell.parentElement;
     if (cell != startCell && cell != endCell && !obstacles.includes(cell)) return;
     resetCell(cell);
-    
+}
+
+function shakeAnimation(element){
+    element.classList.remove("shake");
+    element.classList.add("shake");
+    element.addEventListener("animationend", () => {
+        element.classList.remove("shake");
+    }, {once: true});
+}
+
+function indicateCantStart(){
+    shakeAnimation(gridDiv);
 }
 
 function getAdjacentCells(rootCell){
@@ -302,8 +339,6 @@ function calculateFScore(cell){
     return getCellGScore(cell) + getCellHScore(cell);
 }
 
-
-
 function updateCellDisplay(cell){
     const gScoreDiv = cell.querySelector(".g-score");
     const hScoreDiv = cell.querySelector(".h-score");
@@ -322,7 +357,6 @@ function createPriorityQueue(){
         { return getCellFScore(cell1) - getCellFScore(cell2) } 
     });
 }
-
 
 function isDiagonal(rootCell, adjCell){
     const rootRow = getCellRow(rootCell);
@@ -346,17 +380,14 @@ function isGoingThroughWall(rootCell, adjCell){
     return (obstacles.includes(o1) && obstacles.includes(o2));
 }
 
-
-
 function aStarRecursive(openQ, openSet, closedSet){
-    isAlgorithmRunning = true;
     const currentCell = openQ.dequeue();
     
     openSet.delete(currentCell);
     closedSet.add(currentCell);
 
-    // mark it as closed
     if (currentCell != startCell && currentCell != endCell){
+        // mark it as closed
         animateFillIn(currentCell, CLOSED_COLOR);
     }
      
@@ -377,14 +408,11 @@ function aStarRecursive(openQ, openSet, closedSet){
                 openSet.add(adjacent);
                 openQ.queue(adjacent);
                 if (adjacent != startCell && adjacent != endCell){
-                    // mark it as open?
-                    // adjacent.style.backgroundColor = OPEN_COLOR;
+                    // mark it as open
                     animateFillIn(adjacent, OPEN_COLOR);
                 }
             }
         }
-        // TODO: actually visualize the algorithm instead of just the path
-        // updateCellDisplay(adjacent);
     }
 
     if (currentCell == endCell) {
@@ -393,12 +421,17 @@ function aStarRecursive(openQ, openSet, closedSet){
         return;
     }
 
+    // check if algorithm has been cancelled by user
+    if (!isAlgorithmRunning) return;
+
     // keep recursively running the algorithm if there are more open cells
     if (openQ.length > 0){
-        setTimeout(() => aStarRecursive(openQ, openSet, closedSet), STEP_TIME);
+        setTimeout(() => aStarRecursive(openQ, openSet, closedSet), stepSpeed);
+        return;
     }
 
-    else{
+    // openQ is empty which means no path possible
+    else {
         setTimeout(() => alert("No Path Found"), TIME_BEFORE_NO_PATH_FOUND_ALERT);
         isAlgorithmRunning = false;
     }
@@ -412,38 +445,54 @@ function aStarStart(){
     const closedSet = new Set();
     openQ.queue(startCell);
 
+    hasRan = true;
     isAlgorithmRunning = true;
     aStarRecursive(openQ, openSet, closedSet);
-    isAlgorithmRunning = false;
- 
-
 }
 
 function softReset(){
+    hasRan = false;
     if (endCell) endCell.cameFrom = undefined;
-    clearPath();
-
-    // TODO: come up with a better solution here
-    cellsMatrix.forEach(row => row.forEach(cell => {
-        if (cell != startCell && cell != endCell && !obstacles.includes(cell)) resetCell(cell);
-    }));
-}
-
-function clearPath(){
-    pathCells.forEach(cell => {
-        if (cell != startCell && cell != endCell) resetCell(cell);
-    });
+    clearAlgorithmResidue();
     pathCells = [];
 }
 
+function clearObstacles(){
+    for (let obstacle of obstacles){
+        animateUnfill(obstacle);
+    }
+    obstacles = [];
+}
+
+function clearAlgorithmResidue(){
+    for (let row of cellsMatrix){
+        for (let cell of row){
+            if (cell != startCell && cell != endCell && !obstacles.includes(cell)){
+                resetCell(cell);
+            }
+        }
+    }
+}
+
+function resetGrid(){
+    hasRan = false;
+    for (let row of cellsMatrix){
+        for (let cell of row){
+            resetCell(cell);
+        }
+    }
+    leftClickDragEnabled = false;
+}
+
 function reconstructPath(){
+    isPathDrawing = true;
     let currentCell = endCell;
     while (currentCell != undefined){
         pathCells.push(currentCell);
         currentCell = currentCell.cameFrom;
     }
     pathCells.reverse();
-    const MS = 50;
+    
     let i = 0;
     const interval = setInterval(() => {
         const cell = pathCells[i++];
@@ -451,8 +500,11 @@ function reconstructPath(){
             animateFillIn(cell, PATH_COLOR);
         }
         
-        if (i >= pathCells.length) clearInterval(interval);
-    }, MS);
+        if (i >= pathCells.length) {
+            clearInterval(interval);
+            isPathDrawing = false;
+        }
+    }, PATH_DRAW_SPEED);
 }
 
 function calculateRowCount(){
@@ -474,14 +526,14 @@ const NO_BUTTONS = 0;
 const LEFT_CLICK = 1;
 const RIGHT_CLICK = 2;
 const BODY_COLOR = "lightgrey";
-const START_COLOR = "#8884ff";
-const END_COLOR = "#5a6b9b";
+const START_COLOR = "#00DF1D";
+const END_COLOR = "#df000d";
 const DEFAULT_COLOR = "#c5c6c8";
 const OBSTACLE_COLOR = "#3a284d";
 const CLOSED_COLOR = "#46a29f";
-const OPEN_COLOR = "#563e78";
+const OPEN_COLOR = "#9478ba";
 const PATH_COLOR = "#66fcf1";
-const STEP_TIME = 10;
+const PATH_DRAW_SPEED = 50;
 const TIME_BEFORE_RECONSTRUCT_PATH = 200;
 const TIME_BEFORE_NO_PATH_FOUND_ALERT = 1000;
 const CELL_BORDER_PX = 1;
@@ -499,13 +551,28 @@ let endCell = null;
 let obstacles = [];
 let leftClickDragEnabled = false;
 let isAlgorithmRunning = false;
+let isPathDrawing = false;
+let hasRan = false;
 let pathCells = [];
 document.querySelector("body").style.backgroundColor = BODY_COLOR;
 const gridDiv = document.querySelector(".grid-div");
 createGrid(ROW_COUNT, COL_COUNT, CELL_SIZE_PX);
+
+const slider = document.querySelector(".slider");
+const speedLabel = document.querySelector(".speed-label");
+slider.addEventListener("input", sliderMoved);
+let stepSpeed = slider.value;
+setStepSpeedFromLocalStorage();
+
+
 
 applyMouseDownListeners();
 disableRightClickMenu();
 applyMouseOverListeners();
 applyKeypressListener();
 
+import { startTutorial } from "./tutorial.js";
+if (!localStorage.getItem("visited")){
+    startTutorial();
+    localStorage.setItem("visited", true);
+}
