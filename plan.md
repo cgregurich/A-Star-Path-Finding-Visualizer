@@ -31,35 +31,23 @@ else
 ### **CURRENT TASK**
 
 ### **WHERE I LEFT OFF**
-refactored the code, put things into their own script files. Did some testing, stuff seems to be working more or less. need to continue just messsing around with it to see what else breaks. 
 
 
 
 ### **TODO** 
+feels kinda slow on the github pages. look into performance optimizing. also just check the animation timing for filling/unfilling cells. test different grid sizes, etc.
+might want to mess with contrast of the closed cells vs path cells
+yeah honestly it's laggy af
 
-TUTORIAL
-- add text effect?
-- add button effects?
-- add progress bar??
-- arrows instead of text for buttons
-////////////
-
-- add clean style effects to hints
-- line for found path, instead of/as well as colored cells
 - IDEA: change the event listeners to being on the grid, then deducing which cell
 was clicked using idk pixels and shit, instead of n^2 application of event listeners.
 see if this makes fat grids run better??
 
 - SHOULD I SWITCH OBSTACLES DS TO A SET???
 
-- draw path as a line instead of as blocks such as: https://qiao.github.io/PathFinding.js/visual/
 
 
-- change sizes of the grid?
 - How to not make fat grids slow down the webpage??
-- Maybe also do Dijkstra's?
-- Maybe add a random maze generator?
-- add a little "learn more" type thing to link to the a star algorithm or something?
 
 
 ### **BUGS**
