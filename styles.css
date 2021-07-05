@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Muli&display=swap');
 
 * {
     user-select: none;
@@ -129,18 +129,12 @@ body {
 }
 
 .speed-label, p {
-    font-family: Roboto, sans-serif;
-    font-size: 24px;
+    font-family: Muli, sans-serif;
+    font-size: 20px;
 }
 
 .speed-label {
     width: 100px;
-}
-
-.text {
-    font-family: sans-serif;
-    font-size: 30px;
-    text-align: center;
 }
  
 .shake {
@@ -172,7 +166,7 @@ body {
 
 .hint-container {
     z-index: 1;
-    font-family: Roboto, sans-serif;
+    font-family: Muli, sans-serif;
     height: 150px;
     width: 200px;
     position: absolute;
@@ -190,33 +184,59 @@ body {
     margin: auto;
 }
 
-.hint-container > button {
+.hint-buttons-container {
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hint-progress-steps {
+    width: 100%;
+    display: flex;
+    bottom: 60px;
+    left: 0;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+}
+
+.hint-prev, .hint-next {
+    margin: 5px 8px;
     font-size: 20px;
     background-color: #a793c2;
     border: 3px solid black;
 }
 
-.hint-container > button:hover {
+.hint-prev:hover, .hint-next:hover {
     background-color: #8d73b0;
 }
 
-.hint-container > button:disabled {
+.hint-prev:active, .hint-next:active {
+    background-color: #a28dbf;
+}
+
+.hint-prev:disabled, .hint-next:disabled {
     background-color: #ddd5e7;
-    cursor:not-allowed;
+    cursor: not-allowed;
 }
 
-.hint-prev {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    margin: 15px;
+.hint-step {
+    width: 12px;
+    height: 12px;
+    background-color: #e5deed;
+    box-sizing: border-box;
+    margin: 0 2px;
+    transition: background-color 0.4s;
+    border-radius: 50%;
 }
 
-.hint-next {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    margin: 15px;
+.hint-step--completed {
+    background-color: #8b6fae;
+    transition: 0.4s;
 }
 
 .hint-container--closed {
