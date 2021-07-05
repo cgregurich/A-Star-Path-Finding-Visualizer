@@ -7,11 +7,14 @@
 </head>
 <body>
   <div class="hint-container hint-container--closed">
-    <!-- <i class="far fa-imes-circle hint-exit"></i> -->
     <i class="fas fa-times-circle hint-exit"></i>
     <div class="hint-text">Left click to place start node.</div>
-    <button class="hint-prev" disabled>Prev</button>
-    <button class="hint-next">Next</button>
+    <div class="hint-progress-steps"></div>
+    <div class="hint-buttons-container">
+      <button class="hint-prev" disabled>Prev</button>
+      <button class="hint-next">Next</button>
+
+    </div>
 
   </div>
   <div class="grid-div"></div>
@@ -31,6 +34,5 @@
   <script type="module" src="input.js"></script>
   <script type="module" src="astar.js"></script>
   <script type="module" src="tutorial.js"></script>
-  <!-- <script type="module" src="script.js" defer></script> -->
 </body>
 </html>

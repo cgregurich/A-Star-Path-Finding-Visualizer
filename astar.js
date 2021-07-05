@@ -42,15 +42,6 @@ export function calculateFScore(cell){
 }
 
 
-export function updateCellDisplay(cell){
-    const gScoreDiv = cell.querySelector(".g-score");
-    const hScoreDiv = cell.querySelector(".h-score");
-    const fScoreDiv = cell.querySelector(".f-score");
-    gScoreDiv.innerText = cell.dataset.gScore;
-    hScoreDiv.innerText = cell.dataset.hScore;
-    fScoreDiv.innerText = cell.dataset.fScore;
-}
-
 export function manhattanDistanceToEndCell(cell){
     return Math.abs(Grid.getCellRow(cell) - Grid.getCellRow(Grid.endCell)) + Math.abs(Grid.getCellCol(cell) - Grid.getCellCol(Grid.endCell));
 }
@@ -116,6 +107,7 @@ export function aStarRecursive(openQ, openSet, closedSet){
                 }
             }
         }
+        // Grid.updateCellDisplay(adjacent);
     }
 
     if (currentCell == Grid.endCell) {
@@ -191,3 +183,4 @@ export function setIsAlgorithmRunning(value){
 export function emptyPathCells(){
     pathCells = [];
 }
+

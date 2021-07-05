@@ -4,6 +4,13 @@ import * as Settings from "./settings.js";
 
 export let leftClickDragEnabled = false;
 
+export function setUp(){
+    applyMouseDownListeners();
+    disableRightClickMenu();
+    applyMouseOverListeners();
+    applyKeypressListener();
+}
+
 export function disableLeftClickDrag(){
     leftClickDragEnabled = false;
 }

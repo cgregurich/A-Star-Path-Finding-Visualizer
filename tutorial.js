@@ -1,5 +1,21 @@
+function createProgressSteps(){
+    const hintProgressStep = document.querySelector(".hint-progress-steps");
+    progressSteps = [];
+    for (let i=0; i<hints.length; i++){
+        const step = createStep();
+        progressSteps.push(step);
+        hintProgressStep.appendChild(step);
+    }
+    progressSteps[0].classList.add("hint-step--completed");
+}
+
+function createStep(){
+    const step = document.createElement("div");
+    step.classList.add("hint-step");
+    return step;
+}
+
 function startTutorial(){
-    console.log("start tutorial");
     isTutorialRunning = true;
     hintIndex = 0;
     hintContainer.style.display = "block";
@@ -9,13 +25,19 @@ function startTutorial(){
 }
 
 function stopTutorial(){
-    console.log("stop tutorial");
     isTutorialRunning = false;
     hintContainer.classList.add("hint-container--closed");
+    resetProgressSteps();
+}
+
+function resetProgressSteps(){
+    for (let step of progressSteps){
+        step.classList.remove("hint-step--completed");
+    }
+    progressSteps[0].classList.add("hint-step--completed");
 }
 
 function hintIconClicked(){
-    console.log(`isTutorialRunning: ${isTutorialRunning}`);
     isTutorialRunning ? stopTutorial() : startTutorial();
 }
 
@@ -23,6 +45,7 @@ function prevClicked(){
     hintIndex = clamp(0, hints.length-1, hintIndex-1);
     updateHintText();
     updateButtonsStates();
+    updateProgressSteps();
     hintPrev.blur();
 }
 
@@ -30,7 +53,13 @@ function nextClicked(){
     hintIndex = clamp(0, hints.length-1, hintIndex+1);
     updateHintText();
     updateButtonsStates();
+    updateProgressSteps();
     hintNext.blur();
+}
+
+function updateProgressSteps(){
+    progressSteps[hintIndex + 1]?.classList.remove("hint-step--completed");
+    progressSteps[hintIndex].classList.add("hint-step--completed");
 }
 
 function updateButtonsStates(){
@@ -79,9 +108,12 @@ const hintPrev = document.querySelector(".hint-prev");
 const hintNext = document.querySelector(".hint-next");
 const hintIcon = document.querySelector(".hint-icon");
 const hintExit = document.querySelector(".hint-exit");
+let progressSteps = [];
 
 let hintIndex = 0;
 let isTutorialRunning = false;
+
+createProgressSteps();
 
 hintPrev.addEventListener("click", prevClicked);
 hintNext.addEventListener("click", nextClicked);

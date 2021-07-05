@@ -11,11 +11,12 @@ export let obstacles = [];
 export function createGrid(){    const cellSize = Settings.CELL_SIZE_PX;
     // Essentially put a matrix of divs as gridDiv's children
     // Makes a square
-    for (let r=0; r<calculateRowCount(); r++){
-        console.log("create grid");
+    const rowCount = calculateRowCount();
+    const colCount = calculateColCount();
+    for (let r=0; r<rowCount; r++){
         let rowDiv = createRowDiv();
         let cellsRow = [];
-        for (let c=0; c<calculateColCount(); c++){
+        for (let c=0; c<colCount; c++){
             let cell = createCell();
             rowDiv.appendChild(cell);
             cell.dataset.row = r;
@@ -144,6 +145,23 @@ export function resetCell(cell){
     if (cell == endCell) endCell = null;
     if (obstacles.includes(cell)) deleteObstacle(cell);
     cell.cameFrom = undefined;
+    clearScoreText(cell);
+}
+
+function clearScoreText(cell){
+    const scoreDivs = cell.querySelectorAll(".score");
+    for (let div of scoreDivs){
+        div.innerText = "";
+    }
+}
+
+export function updateCellDisplay(cell){
+    const gScoreDiv = cell.querySelector(".g-score");
+    const hScoreDiv = cell.querySelector(".h-score");
+    const fScoreDiv = cell.querySelector(".f-score");
+    gScoreDiv.innerText = cell.dataset.gScore;
+    hScoreDiv.innerText = cell.dataset.hScore;
+    fScoreDiv.innerText = cell.dataset.fScore;
 }
 
 export function deleteObstacle(cell){
@@ -226,9 +244,11 @@ export function resetGrid(){
 }
 
 export function calculateRowCount(){
-    return Math.floor(window.innerHeight / (Settings.CELL_SIZE_PX + Settings.CELL_BORDER_SIZE_PX*2)) - 3;
+    return Math.floor(window.innerHeight / (Settings.CELL_SIZE_PX + Settings.CELL_BORDER_SIZE_PX*2)) - Math.floor(80 / Settings.CELL_SIZE_PX);
 }
 
 export function calculateColCount(){
-    return Math.floor(window.innerWidth / (Settings.CELL_SIZE_PX + Settings.CELL_BORDER_SIZE_PX*2)) - 3;
+    const margins = 0.25 * window.innerWidth; // % of window size as left and right margins
+    console.log(margins);
+    return Math.floor(window.innerWidth / (Settings.CELL_SIZE_PX + Settings.CELL_BORDER_SIZE_PX*2)) - Math.floor(margins / Settings.CELL_SIZE_PX);
 }

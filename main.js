@@ -2,40 +2,19 @@ import * as Grid from "./grid.js";
 import * as Input from "./input.js";
 import * as Tutorial from "./tutorial.js";
 import * as Settings from "./settings.js";
-
-function setStepSpeedFromLocalStorage(){
-    stepSpeed = localStorage.getItem("stepSpeed");
-    if (!stepSpeed) stepSpeed = 50;
-    slider.value = stepSpeed;
-    speedLabel.textContent = `${stepSpeed}ms`;
-}
-
-function sliderMoved(e){
-    stepSpeed = slider.value;
-    speedLabel.textContent = `${stepSpeed}ms`;
-    localStorage.setItem("stepSpeed", stepSpeed);
-    
-}
-
+import * as Slider from "./slider.js";
 
 document.querySelector("body").style.backgroundColor = Settings.BODY_COLOR;
 
 Grid.createGrid();
-
-const slider = document.querySelector(".slider");
-const speedLabel = document.querySelector(".speed-label");
-slider.addEventListener("input", sliderMoved);
-let stepSpeed = slider.value;
-setStepSpeedFromLocalStorage();
+Slider.setUp();
+Input.setUp();
 
 
-
-Input.applyMouseDownListeners();
-Input.disableRightClickMenu();
-Input.applyMouseOverListeners();
-Input.applyKeypressListener();
-
+// Run tutorial if user is new to the page
 if (!localStorage.getItem("visited")){
     Tutorial.startTutorial();
     localStorage.setItem("visited", true);
 }
+
+// window.addEventListener("resize", () => alert("Looks like you resized the page. Refresh the page for the grid to adjust to the new window size!"));
